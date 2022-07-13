@@ -71,14 +71,14 @@ def download_stock_csv(headers: dict, datestr: str, datestrlist: list):
 
 
 if __name__ == "__main__":
-    date_liist = get_date('2022-07-13', '2022-07-13')
+    date_list = get_date('2022-07-13', '2022-07-13')
 
     with open("data/headers.txt", 'r') as f:
         headers = eval(f.read())
 
-    for date in date_liist:
+    for date in date_list:
         try:
-            a = download_stock_csv(headers, date, date_liist)
+            a = download_stock_csv(headers, date, date_list)
             print('Success', date)
         except ValueError:
             print('Fail', date)
