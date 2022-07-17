@@ -5,7 +5,7 @@ from sklearn.metrics import confusion_matrix
 from sklearn.metrics import roc_curve, auc
 import matplotlib.pyplot as plt
 
-df = pd.read_csv('data/20180102~20220713.csv')
+df = pd.read_csv('data/20130101~20220715.csv')
 
 df = df.rename(columns={'收盤價': 'Close', '開盤價': 'Open',
                         '最高價': 'High', '最低價': 'Low',
@@ -35,24 +35,24 @@ test_x = test.drop('Week_trend', axis=1)
 test_y = test.Week_trend
 
 # Decision tree
-model = DecisionTreeClassifier(max_depth=18)
+model = DecisionTreeClassifier(max_depth=17)
 
 model.fit(train_x, train_y)
 prediction = model.predict(test_x)
 
 # confusion_matrix
 confusion_matrix = confusion_matrix(test_y, prediction)
-# print(confusion_matrix)
+print(confusion_matrix)
 
 # Accuracy 0.46 ~ 0.50
-# print(model.score(test_x, test_y))
+print(model.score(test_x, test_y))
 
 # ROC
 false_positive_rate, true_positive_rate, thresholds = roc_curve(test_y, prediction)
 # AUC
 auc(false_positive_rate, true_positive_rate)
-# print(auc(false_positive_rate, true_positive_rate))
-'''
+print(auc(false_positive_rate, true_positive_rate))
+
 depth_parameters = np.arange(1, 50)
 # 準備兩個容器，一個裝所有參數下的訓練階段 AUC；另一個裝所有參數下的測試階段 AUC
 train_auc = []
@@ -81,9 +81,10 @@ plt.plot(depth_parameters, train_auc, 'b', label='Train AUC')
 plt.plot(depth_parameters, test_auc, 'r', label='Test AUC')
 plt.ylabel('AUC')
 plt.xlabel('depth parameter')
-plt.show()
+# plt.show()
 plt.savefig('picture/depth_parameters.png')
-'''
+
+# --------------------- 策略-------------------------#
 
 # test 是我們在切割樣本的時候，切出來的測試樣本，包含了價量資訊，我們首先將 A.I. 在這期間的預測結果 prediction 放進去
 test['prediction'] = prediction
@@ -103,7 +104,6 @@ test['sell_cost'] = test.Open[np.where((test.status == 0) * (test.status.shift(1
 # 把缺值補上 0
 test = test.fillna(0)
 
-# 來算算每次買賣的報酬率吧！
 # 一買一賣是剛好對應的，所以把買的成本以及賣的價格這兩欄的數字取出，就能輕易的算出交易報酬率
 
 buy_cost = np.array(test.buy_cost[test.buy_cost != 0])
@@ -165,4 +165,4 @@ test.buy_and_hold_equity.plot(color='black')  # 買進持有績效
 test.strategy_equity.plot(color='blue')  # 策略績效
 test.strategy_net_equity.plot(color='red')  # 策略扣除成本後績效
 
-plt.savefig('picture/equity')
+# plt.savefig('picture/equity')

@@ -71,7 +71,7 @@ def download_stock_csv(headers: dict, datestr: str, datestrlist: list):
 
 
 if __name__ == "__main__":
-    date_list = get_date('2022-07-13', '2022-07-13')
+    date_list = get_date('2022-07-14', '2022-07-14')
 
     with open("data/headers.txt", 'r') as f:
         headers = eval(f.read())

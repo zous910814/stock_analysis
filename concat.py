@@ -16,6 +16,6 @@ def concat(path1: str, path2: str):
 
 
 if __name__ == "__main__":
-    a = 'data/20180102~20220712.csv'
-    b = 'data/20220713.csv'
+    a = 'data/20130101~20220714.csv'
+    b = 'data/20220715.csv'
     concat(a, b)
