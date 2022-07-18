@@ -56,7 +56,7 @@ def download_stock_csv(headers: dict, datestr: str, datestrlist: list):
     if os.path.exists(
             'data/' + datestrlist[0] + '~' + datestrlist[-1] + '.csv'
     ) == False and os.path.exists(
-            'data/' + datestrlist[0] + '.csv'
+        'data/' + datestrlist[0] + '.csv'
     ) == False:
         if datestrlist[0] == datestrlist[-1]:
             df.to_csv('data/' + datestrlist[0] + '.csv', encoding="utf-8_sig", index=False)
@@ -70,8 +70,8 @@ def download_stock_csv(headers: dict, datestr: str, datestrlist: list):
     time.sleep(random.randint(5, 10))
 
 
-if __name__ == "__main__":
-    date_list = get_date('2022-07-14', '2022-07-14')
+def download(start, end):
+    date_list = get_date(start, end)
 
     with open("data/headers.txt", 'r') as f:
         headers = eval(f.read())
@@ -85,5 +85,9 @@ if __name__ == "__main__":
             time.sleep(random.randint(2, 5))
         except requests.exceptions.ConnectionError as e:
             time.sleep(2)
-            print("ERROR",e)
+            print("ERROR", e)
             continue
+
+
+if __name__ == "__main__":
+    download('2022-07-18','2022-07-18')
