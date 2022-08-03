@@ -67,8 +67,14 @@ class Indicators:
         data['26_EMA'] = data['收盤價'].ewm(span=26).mean()
         data['DIF'] = data['12_EMA'] - data['26_EMA']
         data['MACD'] = data['DIF'].ewm(span=9).mean()
+        data['MACD_histogram'] = data['DIF'] - data['MACD']
 
-    def kd_line(self):
+    def MA(self, day=20):
+        data = self.__data
+        data['{}_MA'.format(day)] = data['收盤價'].rolling(day).mean()
+        data['{}_MA'.format(day)] = np.nan_to_num(data['{}_MA'.format(day)])
+
+    def kd_line(self, date, savefig=True):
         '''
         Make KD indicator's picture
         '''
@@ -80,11 +86,18 @@ class Indicators:
             self.dv()
 
         data.index = pd.DatetimeIndex(data['日期'])
+        data = data[data.index > date]
         data['K'].plot()
         data['D'].plot()
-        plt.show()
+        plt.legend()
+        plt.title('KD')
 
-    def macd_line(self):
+        if savefig == True:
+            plt.savefig('picture/' + str(round(data['證券代號'].values[0])) + 'KD.png')
+        else:
+            plt.show()
+
+    def macd_line(self, date, savefig=True):
         '''
         Make MACD indicator's picture
         '''
@@ -94,15 +107,34 @@ class Indicators:
             self.macd()
 
         data.index = pd.DatetimeIndex(data['日期'])
-        data['MACD'].plot()
-        data['DIF'].plot()
+        data = data[data.index > date]
 
-        plt.show()
+        data['MACD'].plot(kind='line')
+        data['DIF'].plot(kind='line')
+        for index, row in data.iterrows():
+            if (row['MACD_histogram'] > 0):
+                plt.bar(row['日期'], row['MACD_histogram'], width=0.5, color='red')
+            else:
+                plt.bar(row['日期'], row['MACD_histogram'], width=0.5, color='green')
 
-    def candlestick_chart(self):
+        # major_index = data.index[data.index % 10 == 0]
+        # major_xtics = data['日期'][data.index % 10 == 0]
+        # plt.xticks(major_index, major_xtics)
+        # plt.setp(plt.gca().get_xticklabels(), rotation=30)
+
+        plt.legend()
+        plt.title('MACD')
+
+        if savefig == True:
+            plt.savefig('picture/' + str(round(data['證券代號'].values[0])) + 'MACD.png')
+        else:
+            plt.show()
+
+    def candlestick_chart(self, date, savefig=True):
         data = self.__data
 
         data.index = pd.DatetimeIndex(data['日期'])
+        data = data[data.index > date]
         data = data.rename(columns={'收盤價': 'Close', '開盤價': 'Open',
                                     '最高價': 'High', '最低價': 'Low',
                                     '成交股數': 'Volume'})
@@ -110,22 +142,21 @@ class Indicators:
         mc = mpf.make_marketcolors(up='r', down='g', inherit=True)
         s = mpf.make_mpf_style(base_mpf_style='yahoo', marketcolors=mc)
 
-        mpf.plot(data, style=s, type='candle', volume=True)
+        if savefig == True:
+
+            # 5b,20o,60g,120r,240p
+            mpf.plot(data, style=s, type='candle', volume=True, mav=(5, 20, 60, 120, 240),
+                     savefig='picture/' + str(round(data['證券代號'].values[0])) + '.png')
+        else:
+            mpf.plot(data, style=s, type='candle', volume=True, mav=(5, 20, 60, 120, 240))
 
     def __str__(self):
         return self.__data.__str__()
 
 
 if __name__ == "__main__":
-    df = pd.read_csv('data/20130101~20220715.csv')
+    df = pd.read_csv('data/20130101~20220802.csv')
+    tsmc_df = df[df['證券代號'] == 2330]
+    tsmc = Indicators(tsmc_df)
 
-    tsmc = Indicators(df[df['證券代號'] == 2330])
-
-    # tsmc.kv()
-    # tsmc.dv()
-    # tsmc.macd()
-    print(tsmc)
-
-    # tsmc.kd_line()
-    # tsmc.macd_line()
-    tsmc.candlestick_chart()
+    tsmc.macd_line(date='2022', savefig=False)

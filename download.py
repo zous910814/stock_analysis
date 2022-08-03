@@ -87,7 +87,3 @@ def download(start, end):
             time.sleep(2)
             print("ERROR", e)
             continue
-
-
-if __name__ == "__main__":
-    download('2022-07-18','2022-07-18')
