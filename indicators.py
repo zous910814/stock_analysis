@@ -86,6 +86,16 @@ class Indicators:
 
         data['Bias'] = 100 * (data['收盤價'] - data['{}_MA'.format(day)]) / data['收盤價'].rolling(day).mean()
 
+    def bollinger_band(self, day=20):
+        data = self.__data
+        if '{}_MA'.format(day) not in data:
+            self.ma(day)
+        std = data['收盤價'].rolling(day).std()
+
+        data['Bollinger_top'] = data['{}_MA'.format(day)] + std * 2
+        data['Bollinger_mid'] = data['{}_MA'.format(day)]
+        data['Bollinger_down'] = data['{}_MA'.format(day)] - std * 2
+
     def kd_line(self, date: str, savefig: bool = True):
         '''
         Make KD indicator's picture
@@ -156,6 +166,26 @@ class Indicators:
 
         if savefig == True:
             plt.savefig('picture/' + str(round(data['證券代號'].values[0])) + 'Bias.png')
+        else:
+            plt.show()
+
+    def bollinger_band_line(self, date: str, savefig=True):
+        data = self.__data
+
+        if 'Bollinger_top' not in data or 'Bollinger_mid' not in data or 'Bollinger_down' not in data:
+            self.bollinger_band()
+
+        data.index = pd.DatetimeIndex(data['日期'])
+        data = data[data.index > date]
+        data['Bollinger_top'].plot(color='red')
+        data['Bollinger_mid'].plot(color='blue')
+        data['Bollinger_down'].plot(color='green')
+        data['收盤價'].plot(color='orange')
+        plt.legend()
+        plt.title('Bollinger_band')
+
+        if savefig == True:
+            plt.savefig('picture/' + str(round(data['證券代號'].values[0])) + 'Bollinger_band.png')
         else:
             plt.show()
 
@@ -234,9 +264,8 @@ if __name__ == "__main__":
 
     tsmc_df = df[df['證券代號'] == 2330]
     ind_df = Indicators(tsmc_df)
-    ind_df.bias()
-    ind_df.bias_line(date='2022-01')
-    print(ind_df)
+    ind_df.bollinger_band_line(date='2022-01', savefig=False)
+    print(tsmc_df.iloc[:, -3:])
 
     # ind_df.macd_line(date='2022-05', savefig=False)
     # select_df = Selections(df)
