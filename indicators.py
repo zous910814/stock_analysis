@@ -5,6 +5,11 @@ import mplfinance as mpf
 
 
 class Indicators:
+    '''
+    input a company's dataframe to create indicators series
+    :return series
+    '''
+
     def __init__(self, data):
         self.__data = data
 
@@ -74,6 +79,13 @@ class Indicators:
         data['{}_MA'.format(day)] = data['收盤價'].rolling(day).mean()
         data['{}_MA'.format(day)] = np.nan_to_num(data['{}_MA'.format(day)])
 
+    def bias(self, day=6):
+        data = self.__data
+        if '{}_MA'.format(day) not in data:
+            self.ma(day)
+
+        data['Bias'] = 100 * (data['收盤價'] - data['{}_MA'.format(day)]) / data['收盤價'].rolling(day).mean()
+
     def kd_line(self, date: str, savefig: bool = True):
         '''
         Make KD indicator's picture
@@ -97,7 +109,7 @@ class Indicators:
         else:
             plt.show()
 
-    def macd_line(self, date, savefig=True):
+    def macd_line(self, date: str, savefig=True):
         '''
         Make MACD indicator's picture
         '''
@@ -130,6 +142,23 @@ class Indicators:
         else:
             plt.show()
 
+    def bias_line(self, date: str, savefig=True):
+        data = self.__data
+
+        if 'Bias' not in data:
+            self.bias()
+
+        data.index = pd.DatetimeIndex(data['日期'])
+        data = data[data.index > date]
+        data['Bias'].plot(color='red')
+        plt.legend()
+        plt.title('Bias')
+
+        if savefig == True:
+            plt.savefig('picture/' + str(round(data['證券代號'].values[0])) + 'Bias.png')
+        else:
+            plt.show()
+
     def candlestick_chart(self, date, savefig=True):
         data = self.__data
 
@@ -150,7 +179,20 @@ class Indicators:
         else:
             mpf.plot(data, style=s, type='candle', volume=True, mav=(5, 20, 60, 120, 240))
 
-    def kd_gold(self) -> list:
+    def __str__(self):
+        return self.__data.__str__()
+
+
+class Selections:
+    '''
+    input all company's dataframe to get stock selections
+    :return list
+    '''
+
+    def __init__(self, data):
+        self.__data = data
+
+    def kd_goldencross(self) -> list:
         data = self.__data
         symbol = data['證券代號'].unique()
         li = []
@@ -162,13 +204,13 @@ class Indicators:
 
             k = df['K'].tolist()
             d = df['D'].tolist()
-            
+
             if k[-1] < 20 and d[-1] < 20:
                 li.append(i)
 
         return li
 
-    def kd_died(self) -> list:
+    def kd_deathcross(self) -> list:
         data = self.__data
         symbol = data['證券代號'].unique()
         li = []
@@ -186,18 +228,19 @@ class Indicators:
 
         return li
 
-    def __str__(self):
-        return self.__data.__str__()
-
 
 if __name__ == "__main__":
     df = pd.read_csv('data/20130101~20220803.csv')
 
-    tsmc_df = df[df['證券代號'] == 1234]
-    tsmc = Indicators(tsmc_df)
-    tsmc_d = Indicators(df)
-    print(tsmc_d.kd_died())
-    # tsmc.candlestick_chart(date='2022', savefig=False)
+    tsmc_df = df[df['證券代號'] == 2330]
+    ind_df = Indicators(tsmc_df)
+    ind_df.bias()
+    ind_df.bias_line(date='2022-01')
+    print(ind_df)
+
+    # ind_df.macd_line(date='2022-05', savefig=False)
+    # select_df = Selections(df)
+    # print(select_df.kd_goldencross())
 
     '''
     KD<20
